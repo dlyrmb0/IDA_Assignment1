@@ -1,4 +1,4 @@
-setwd("C:/Users/Sharon/Desktop/IDA")
+setwd("C:/Users/lenovo/Desktop/IDA_Assignment1")
 
 load("dataex2.Rdata")
 
@@ -8,13 +8,12 @@ library(mice)
 true_beta1 <- 3  # The true value of β1
 n_datasets <- 100  # Total number of datasets
 m <- 20  # Number of imputations or bootstrap samples per dataset
+dataset <- as.data.frame(dataex2[, , i])
+names(dataset) <- c("X", "Y")
 
 # For Stochastic Regression Imputation
 coverage_count_imp <- 0
 for (i in 1:n_datasets) {
-  dataset <- as.data.frame(dataex2[, , i])
-  names(dataset) <- c("X", "Y")
-  
   imp <- mice(dataset, m = m, method = 'norm.predict', seed = 1, print = FALSE)
   
   for (j in 1:m) {
@@ -34,10 +33,8 @@ print(paste("Empirical coverage probability (Imputation):", empirical_coverage_p
 coverage_count_boot <- 0
 n_bootstraps <- m  # Reusing 'm' for the number of bootstrap samples
 
-dataset <- as.data.frame(dataex2[, , 1])  # Example: Using the first dataset
-names(dataset) <- c("X", "Y")
-
 for (i in 1:n_bootstraps) {
+  imp <- mice(dataset, m = m, method = 'norm.predict', seed = 1, print = FALSE)
   sample_indices <- sample(nrow(dataset), replace = TRUE)
   bootstrap_sample <- dataset[sample_indices, ]
   
@@ -51,6 +48,7 @@ for (i in 1:n_bootstraps) {
 empirical_coverage_prob_boot <- coverage_count_boot / n_bootstraps
 print(paste("Empirical coverage probability (Bootstrap):", empirical_coverage_prob_boot))
 
+################################################################################
 load("dataex3.Rdata")
 
 # Assume data is loaded and sigma squared is known
@@ -74,6 +72,7 @@ result <- optim(par = 0, fn = log_likelihood, x = dataex3$X, r = dataex3$R, sigm
 mu_mle <- result$par
 print(mu_mle)
  
+################################################################################
 load("dataex5.Rdata")
 
 
