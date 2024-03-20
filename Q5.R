@@ -1,46 +1,37 @@
-# Question 4
-setwd("C:/Users/lenovo/Desktop/IDA_Assignment1")
+load("dataex5.Rdata") # Load the dataset
+#require(maxLik)
 
-load("dataex5.Rdata")
+data1 <- na.omit(dataex5) # Cases with complete data
+x1 <- data1[,1]
+y1 <- data1[,2]
 
-# install.packages("maxLik")
-library(maxLik)  # Assuming maxLik for optimization
+data2 <- dataex5[is.na(dataex5[,2]), ] # Cases with missing Y values
+x2 <- data2[,1]
+y2 <- data2[,2]
 
-logitLikelihood <- function(beta, x, y) {
-  p <- exp(beta[1] + beta[2] * x) / (1 + exp(beta[1] + beta[2] * x))
-  return(-sum(y * log(p) + (1 - y) * log(1 - p), na.rm = TRUE))  # Negative for minimization
-}
+# Initialize parameters
+beta0 <- c(0, 0)
+beta <- beta0
+eps <- 1e-8
+diff <- 1
 
-# EM algorithm skeleton
-beta_init <- c(0, 0)  # Initial guesses for beta0 and beta1
-convergence_threshold <- 1e-6
-max_iter <- 1000
-iter <- 0
-converged <- FALSE
-
-while(!converged && iter < max_iter) {
-  iter <- iter + 1
+# Loop for the EM algorithm until convergence
+while (diff > eps) {
+  beta_old <- beta
   
-  # E-step: Estimate missing Y based on current beta estimates
-  # For logistic regression, this is just calculating p_i(beta)
-  expected_y <- exp(beta_init[1] + beta_init[2] * dataex5$X) / (1 + exp(beta_init[1] + beta_init[2] * dataex5$X))
-  dataex5$Y[is.na(dataex5$Y)] <- expected_y[is.na(dataex5$Y)]
-  
-  # M-step: Maximize likelihood with current Y estimates (observed + expected)
-  ml_result <- maxLik(logitLikelihood, start = beta_init, x = dataex5$X, y = dataex5$Y)
-  beta_update <- coef(ml_result)
-  
-  # Check for convergence
-  if (max(abs(beta_update - beta_init)) < convergence_threshold) {
-    converged <- TRUE
-  } else {
-    beta_init <- beta_update
+  # E-step: Calculate the conditional expectation of missing data
+  logLikelihood <- function(beta, beta_old) {
+    pi1 <- exp(beta[1] + x1 * beta[2])/(1+exp(beta[1] + x1 * beta[2]))
+    pi2 <- exp(beta[1] + x2 * beta[2])/(1+exp(beta[1] + x2 * beta[2]))
+    pi2_old <- exp(beta_old[1] + x2 * beta_old[2])/(1+exp(beta_old[1] + x2 * beta_old[2]))
+    return(-(sum(y1 * log(pi1) + (1 - y1) * log(1 -  pi1))+sum(pi2_old * log(pi2) + (1 - pi2_old) * log(1 - pi2))))
   }
+  
+  # M-step: Update parameter estimates
+  MLE <- optim(par = beta, fn = logLikelihood, beta_old=beta_old)
+  beta <- MLE$par
+  
+  diff <- sum(abs(beta - beta_old)) # Check convergence condition
 }
 
-if (converged) {
-  cat("Converged after", iter, "iterations.\n")
-  print(beta_update)
-} else {
-  cat("Did not converge within the maximum number of iterations.\n")
-}
+print(beta)
