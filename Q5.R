@@ -34,4 +34,5 @@ while (diff > eps) {
   diff <- sum(abs(beta - beta_old)) # Check convergence condition
 }
 
-print(beta)
+print(paste("The maximum likelihood estimate of beta_0 is", beta[1]))
+print(paste("The maximum likelihood estimate of beta_1 is", beta[2]))

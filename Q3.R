@@ -14,4 +14,4 @@ result <- optim(par = 0, fn = logLikelihood, x=dataex3$X, r=dataex3$R, sigma = s
 
 # Extract the MLE of mu from the optimization result
 mu_mle <- result$par
-print(mu_mle)
+print(paste("The maximum likelihood estimate of mu is", mu_mle))
